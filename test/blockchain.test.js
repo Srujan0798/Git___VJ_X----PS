@@ -40,6 +40,13 @@ describe('WorkspaceRegistry Contract', () => {
       expect(workspace.ipfsHash).to.equal(ipfsHash);
       expect(workspace.version).to.equal(1);
     });
+
+    it('should fail to create workspace with empty ipfsHash', async () => {
+      // The contract should revert with the specific error message "ipfsHash cannot be empty".
+      await expect(
+        workspaceRegistry.connect(user1).createWorkspace('')
+      ).to.be.revertedWith('ipfsHash cannot be empty');
+    });
   });
 
   describe('Workspace Updates', () => {
