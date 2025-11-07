@@ -1,0 +1,77 @@
+name: Deploy Vitini Jirai Frontend
+
+on:
+  push:
+    branches: [main, production]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test and Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm' # Cache npm dependencies
+      
+      - name: Install dependencies
+        # This step assumes a package.json file exists.
+        run: npm ci
+      
+      - name: Run tests
+        # This step assumes a "test" script is defined in package.json
+        run: npm test
+      
+      - name: Run linter
+        # This step assumes a "lint" script is defined in package.json
+        run: npm run lint
+
+  build-and-deploy:
+    name: Build and Deploy to Production
+    needs: test
+    runs-on: ubuntu-latest
+    # Only run this job on pushes to the 'production' branch
+    if: github.ref == 'refs/heads/production'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1 # Change to your desired AWS region
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      
+      - name: Build, tag, and push Docker image
+        env:
+          # Use the ECR registry URI from the login step
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          # Define your ECR repository name
+          ECR_REPOSITORY: vitini-jirai-frontend
+          # Use the Git commit SHA as the image tag for versioning
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # The Dockerfile is expected to be in the root of the repository
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      
+      - name: Deploy to Amazon ECS (Placeholder)
+        # This step is a placeholder. In a real-world scenario, you would
+        # use the AWS CLI or a dedicated GitHub Action to update your ECS service
+        # with the new Docker image tag.
+        run: |
+          echo "Deployment to ECS would be triggered here."
+          echo "Example command:"
+          echo "aws ecs update-service --cluster your-cluster-name --service your-service-name --force-new-deployment"

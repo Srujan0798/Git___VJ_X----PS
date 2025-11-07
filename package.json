@@ -1,5 +1,5 @@
 {
-  "name": "vj_x----ps",
+  "name": "git___vj_x----ps",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -18,7 +18,10 @@
     "ipfs-http-client": "latest",
     "ethers": "6.11.1",
     "crypto-js": "latest",
-    "socket.io-client": "latest"
+    "socket.io-client": "latest",
+    "@vitejs/plugin-react": "^5.1.0",
+    "path": "^0.12.7",
+    "vite": "^7.2.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
