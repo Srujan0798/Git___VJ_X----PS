@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://backend:5000
+      - REACT_APP_BLOCKCHAIN_NETWORK=polygon
+    depends_on:
+      - backend
+
+  backend:
+    # This service is a placeholder as we only have the frontend code.
+    # In a real project, you would have a 'backend' folder with its own Dockerfile.
+    image: node:18-alpine 
+    command: sh -c "while true; do echo 'Backend placeholder running'; sleep 60; done"
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://user:password@postgres:5432/vitini
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your_jwt_secret_here # Replace in production
+      - INFURA_PROJECT_ID=your_infura_id_here
+      - INFURA_PROJECT_SECRET=your_infura_secret_here
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=vitini
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
